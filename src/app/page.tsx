@@ -58,7 +58,7 @@ export default function Home() {
         setSnackbar({ open: true, message: 'User updated successfully!', severity: 'success' });
         handleCloseDialog();
       } else {
-        setSnackbar({ open: true, message: 'Failed to update user', severity: 'error' });
+        setSnackbar({ open: true, message: error || 'Failed to update user', severity: 'error' });
       }
     } else {
       const result = await createUser(values);
@@ -66,7 +66,7 @@ export default function Home() {
         setSnackbar({ open: true, message: 'User created successfully!', severity: 'success' });
         handleCloseDialog();
       } else {
-        setSnackbar({ open: true, message: 'Failed to create user', severity: 'error' });
+        setSnackbar({ open: true, message: error || 'Failed to create user', severity: 'error' });
       }
     }
   };

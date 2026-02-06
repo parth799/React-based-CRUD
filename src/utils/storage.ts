@@ -18,6 +18,14 @@ export const getUserById = (id: string): User | undefined => {
   return users.find((user) => user.id === id);
 };
 
+export const isEmailDuplicate = (email: string, excludeUserId?: string): boolean => {
+  const users = getUsers();
+  const normalizedEmail = email.toLowerCase().trim();
+  return users.some(
+    (user) => user.email.toLowerCase().trim() === normalizedEmail && user.id !== excludeUserId
+  );
+};
+
 export const createUser = (userData: UserFormValues): User => {
   const users = getUsers();
   const newUser: User = {

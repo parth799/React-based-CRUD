@@ -6,7 +6,8 @@ import {
   getUsers as getStorageUsers,
   createUser as createStorageUser,
   updateUser as updateStorageUser,
-  deleteUser as deleteStorageUser
+  deleteUser as deleteStorageUser,
+  isEmailDuplicate
 } from '@/utils/storage';
 
 interface UseUsersReturn {
@@ -41,6 +42,10 @@ export const useUsers = (): UseUsersReturn => {
     setLoading(true);
     setError(null);
     try {
+      if (isEmailDuplicate(userData.email)) {
+        setError('A user with this email already exists');
+        return null;
+      }
       const newUser = createStorageUser(userData);
       setUsers((prev) => [...prev, newUser]);
       return newUser;
@@ -56,6 +61,10 @@ export const useUsers = (): UseUsersReturn => {
     setLoading(true);
     setError(null);
     try {
+      if (isEmailDuplicate(userData.email, id)) {
+        setError('A user with this email already exists');
+        return null;
+      }
       const updatedUser = updateStorageUser(id, userData);
       if (updatedUser) {
         setUsers((prev) => prev.map((user) => (user.id === id ? updatedUser : user)));
