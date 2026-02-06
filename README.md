@@ -4,7 +4,7 @@ A modern, extensible user management application built with Next.js, Material-UI
 
 ## Live Demo
 
-[View Live Application](https://your-vercel-url.vercel.app)
+[View Live Application](https://react-based-crud-iota.vercel.app/)
 
 ## Features
 
@@ -35,8 +35,8 @@ A modern, extensible user management application built with Next.js, Material-UI
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/user-crud-app.git
-cd user-crud-app
+git clone https://github.com/parth799/React-based-CRUD.git
+cd React-based-CRUD
 ```
 
 2. Install dependencies:
@@ -68,7 +68,6 @@ Edit `src/config/formConfig.ts`:
 
 ```typescript
 export const formFields: FormField[] = [
-  // ... existing fields
   {
     name: 'dateOfBirth',
     label: 'Date of Birth',
@@ -91,7 +90,7 @@ export interface User {
   lastName: string;
   phone: string;
   email: string;
-  dateOfBirth?: string;  // Add new field
+  dateOfBirth?: string;
   createdAt: string;
   updatedAt: string;
   [key: string]: string | undefined;
