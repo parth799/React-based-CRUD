@@ -16,8 +16,9 @@ import {
   Chip,
   IconButton,
   Tooltip,
+  Alert,
 } from '@mui/material';
-import HomeIcon from '@mui/icons-material/Home';
+import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { AuditEvent } from '@/types/audit.types';
@@ -67,6 +68,10 @@ export default function AuditLogsPage() {
     return new Date(timestamp).toLocaleString();
   };
 
+  const suspiciousEvents = events.filter(e => 
+    ['COPY_ATTEMPT', 'PASTE_ATTEMPT', 'CUT_ATTEMPT', 'RIGHT_CLICK_ATTEMPT', 'FULLSCREEN_EXIT', 'TAB_BLUR'].includes(e.type)
+  );
+
   return (
     <Box
       sx={{
@@ -95,19 +100,20 @@ export default function AuditLogsPage() {
           >
             <Box>
               <Typography variant="h4" fontWeight="bold">
-                Audit Event Logs
+                📋 Audit Event Logs
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                View all captured assessment events from IndexedDB
+                Complete audit trail of candidate behavior during assessment
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', gap: 1.5 }}>
               <Button
-                variant="outlined"
-                startIcon={<HomeIcon />}
+                variant="contained"
+                color="primary"
+                startIcon={<PlayArrowIcon />}
                 href="/"
               >
-                Home
+                Take Assessment
               </Button>
               <Button
                 variant="outlined"
@@ -129,9 +135,32 @@ export default function AuditLogsPage() {
             </Box>
           </Box>
 
-          <Typography variant="body2" sx={{ mb: 2 }}>
-            Total Events: <strong>{events.length}</strong>
-          </Typography>
+          <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+            <Paper elevation={2} sx={{ p: 2, flex: 1, textAlign: 'center' }}>
+              <Typography variant="h4" color="primary.main" fontWeight="bold">{events.length}</Typography>
+              <Typography variant="body2" color="text.secondary">Total Events</Typography>
+            </Paper>
+            <Paper elevation={2} sx={{ p: 2, flex: 1, textAlign: 'center' }}>
+              <Typography variant="h4" color="error.main" fontWeight="bold">{suspiciousEvents.length}</Typography>
+              <Typography variant="body2" color="text.secondary">Suspicious Events</Typography>
+            </Paper>
+            <Paper elevation={2} sx={{ p: 2, flex: 1, textAlign: 'center' }}>
+              <Typography variant="h4" color="success.main" fontWeight="bold">
+                {events.filter(e => e.type === 'TEST_SUBMIT').length}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">Submissions</Typography>
+            </Paper>
+          </Box>
+
+          {suspiciousEvents.length > 0 && (
+            <Alert severity="warning" sx={{ mb: 3 }}>
+              <strong>{suspiciousEvents.length} suspicious events detected:</strong> {' '}
+              {suspiciousEvents.filter(e => e.type === 'COPY_ATTEMPT').length} copy attempts, {' '}
+              {suspiciousEvents.filter(e => e.type === 'PASTE_ATTEMPT').length} paste attempts, {' '}
+              {suspiciousEvents.filter(e => e.type === 'RIGHT_CLICK_ATTEMPT').length} right-click attempts, {' '}
+              {suspiciousEvents.filter(e => e.type === 'TAB_BLUR').length} tab switches
+            </Alert>
+          )}
 
           <TableContainer component={Paper} variant="outlined">
             <Table size="small">
@@ -153,11 +182,22 @@ export default function AuditLogsPage() {
                       <Typography color="text.secondary">
                         No events logged yet. Take an assessment to see events here.
                       </Typography>
+                      <Button href="/" variant="contained" sx={{ mt: 2 }}>
+                        Start Assessment
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ) : (
                   events.map((event) => (
-                    <TableRow key={event.id} hover>
+                    <TableRow 
+                      key={event.id} 
+                      hover
+                      sx={{ 
+                        bgcolor: ['COPY_ATTEMPT', 'PASTE_ATTEMPT', 'CUT_ATTEMPT', 'RIGHT_CLICK_ATTEMPT'].includes(event.type) 
+                          ? 'error.50' 
+                          : 'inherit' 
+                      }}
+                    >
                       <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.8rem' }}>
                         {formatDate(event.timestamp)}
                       </TableCell>
@@ -170,7 +210,7 @@ export default function AuditLogsPage() {
                         />
                       </TableCell>
                       <TableCell sx={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>
-                        {event.attemptId.substring(0, 12)}...
+                        {event.attemptId.substring(0, 16)}...
                       </TableCell>
                       <TableCell sx={{ fontSize: '0.85rem' }}>
                         {event.userId}
@@ -195,6 +235,14 @@ export default function AuditLogsPage() {
               </TableBody>
             </Table>
           </TableContainer>
+
+          <Box sx={{ mt: 3, p: 2, bgcolor: 'grey.50', borderRadius: 2 }}>
+            <Typography variant="caption" color="text.secondary">
+              <strong>Event Schema:</strong> Each event contains type, timestamp, attemptId, questionId (if applicable), 
+              and metadata (browser, focus state, fullscreen status). Logs are persisted locally in IndexedDB 
+              and synced to backend every 30 seconds.
+            </Typography>
+          </Box>
         </Paper>
       </Container>
     </Box>

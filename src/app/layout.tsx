@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import { Providers } from './providers';
 
 export const metadata: Metadata = {
-  title: 'User Management - CRUD Application',
-  description: 'A modern user management application with extensible form architecture'
+  title: 'Secure Assessment - Anti-Cheat System',
+  description: 'High-stakes assessment platform with browser restrictions, event logging, and audit trail'
 };
 
 export default function RootLayout({
