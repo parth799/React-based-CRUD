@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, use } from 'react';
 import {
   Container,
   Paper,
@@ -17,7 +17,6 @@ import {
   StepLabel,
   Card,
   CardContent,
-  TextField,
 } from '@mui/material';
 import { AssessmentWrapper } from '@/components/assessment/AssessmentWrapper';
 import { AssessmentConfig } from '@/types/audit.types';
@@ -25,19 +24,18 @@ import { AssessmentConfig } from '@/types/audit.types';
 const SAMPLE_QUESTIONS = [
   {
     id: 'q1',
-    type: 'mcq',
     question: 'What is the time complexity of binary search?',
     options: ['O(n)', 'O(log n)', 'O(n²)', 'O(1)'],
+    correctAnswer: 1,
   },
   {
     id: 'q2',
-    type: 'mcq',
     question: 'Which data structure uses LIFO (Last In First Out) principle?',
     options: ['Queue', 'Stack', 'Array', 'Linked List'],
+    correctAnswer: 1,
   },
   {
     id: 'q3',
-    type: 'mcq',
     question: 'What is the purpose of the "virtual" keyword in C++?',
     options: [
       'Memory optimization',
@@ -45,37 +43,53 @@ const SAMPLE_QUESTIONS = [
       'Faster execution',
       'Static typing',
     ],
+    correctAnswer: 1,
   },
   {
     id: 'q4',
-    type: 'text',
-    question: 'Explain the difference between REST and GraphQL APIs in 2-3 sentences.',
+    question: 'Which sorting algorithm has the best average case time complexity?',
+    options: ['Bubble Sort', 'Quick Sort', 'Selection Sort', 'Insertion Sort'],
+    correctAnswer: 1,
   },
   {
     id: 'q5',
-    type: 'mcq',
-    question: 'Which sorting algorithm has the best average case time complexity?',
-    options: ['Bubble Sort', 'Quick Sort', 'Selection Sort', 'Insertion Sort'],
+    question: 'What does REST stand for?',
+    options: [
+      'Rapid Enterprise Software Technology',
+      'Representational State Transfer',
+      'Remote Execution Service Transfer',
+      'Real-time Event Stream Technology',
+    ],
+    correctAnswer: 1,
   },
 ];
 
-export default function AssessmentPage() {
+interface PageParams {
+  attemptId: string;
+}
+
+export default function AssessmentPage({
+  params: paramsPromise,
+}: {
+  params: Promise<PageParams>;
+}) {
+  const params = use(paramsPromise);
+  const { attemptId } = params;
+
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [answers, setAnswers] = useState<Record<string, number>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const attemptId = `attempt-${Date.now()}`;
-  
   const config: AssessmentConfig = {
     attemptId,
-    userId: 'candidate-001',
+    userId: 'demo-user-123',
     duration: 30 * 60,
     heartbeatInterval: 60,
     syncInterval: 30,
   };
 
-  const handleAnswerChange = useCallback((questionId: string, answer: string) => {
-    setAnswers(prev => ({ ...prev, [questionId]: answer }));
+  const handleAnswerChange = useCallback((questionId: string, answerIndex: number) => {
+    setAnswers(prev => ({ ...prev, [questionId]: answerIndex }));
   }, []);
 
   const handleNext = useCallback(() => {
@@ -105,26 +119,23 @@ export default function AssessmentPage() {
           background: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)',
         }}
       >
-        <Paper elevation={8} sx={{ p: 5, textAlign: 'center', borderRadius: 3, maxWidth: 500 }}>
+        <Paper elevation={8} sx={{ p: 5, textAlign: 'center', borderRadius: 3 }}>
           <Typography variant="h3" fontWeight="bold" color="success.main" gutterBottom>
             ✓ Assessment Submitted
           </Typography>
           <Typography variant="h6" color="text.secondary" sx={{ mb: 3 }}>
-            Your responses have been recorded successfully.
+            Your responses have been recorded.
           </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Attempt ID: <code>{attemptId}</code>
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            All events have been logged and synced.
+          <Typography variant="body2" color="text.secondary">
+            Attempt ID: {attemptId}
           </Typography>
           <Button
             variant="contained"
             color="primary"
-            sx={{ mt: 2 }}
-            href="/audit-logs"
+            sx={{ mt: 3 }}
+            href="/"
           >
-            View Event Logs
+            Return Home
           </Button>
         </Paper>
       </Box>
@@ -181,50 +192,36 @@ export default function AssessmentPage() {
                 {currentQ.question}
               </FormLabel>
 
-              {currentQ.type === 'mcq' && currentQ.options && (
-                <RadioGroup
-                  value={answers[currentQ.id] || ''}
-                  onChange={(e) => handleAnswerChange(currentQ.id, e.target.value)}
-                >
-                  {currentQ.options.map((option, idx) => (
-                    <Paper
-                      key={idx}
-                      elevation={answers[currentQ.id] === String(idx) ? 4 : 1}
-                      sx={{
-                        mb: 1.5,
-                        p: 1,
-                        borderRadius: 2,
-                        border: answers[currentQ.id] === String(idx) ? 2 : 1,
-                        borderColor: answers[currentQ.id] === String(idx) ? 'primary.main' : 'divider',
-                        transition: 'all 0.2s',
-                        '&:hover': {
-                          borderColor: 'primary.light',
-                          bgcolor: 'action.hover',
-                        },
-                      }}
-                    >
-                      <FormControlLabel
-                        value={String(idx)}
-                        control={<Radio />}
-                        label={option}
-                        sx={{ width: '100%', m: 0, py: 0.5 }}
-                      />
-                    </Paper>
-                  ))}
-                </RadioGroup>
-              )}
-
-              {currentQ.type === 'text' && (
-                <TextField
-                  multiline
-                  rows={4}
-                  fullWidth
-                  placeholder="Type your answer here..."
-                  value={answers[currentQ.id] || ''}
-                  onChange={(e) => handleAnswerChange(currentQ.id, e.target.value)}
-                  sx={{ mt: 2 }}
-                />
-              )}
+              <RadioGroup
+                value={answers[currentQ.id] ?? ''}
+                onChange={(e) => handleAnswerChange(currentQ.id, parseInt(e.target.value))}
+              >
+                {currentQ.options.map((option, idx) => (
+                  <Paper
+                    key={idx}
+                    elevation={answers[currentQ.id] === idx ? 4 : 1}
+                    sx={{
+                      mb: 1.5,
+                      p: 1,
+                      borderRadius: 2,
+                      border: answers[currentQ.id] === idx ? 2 : 1,
+                      borderColor: answers[currentQ.id] === idx ? 'primary.main' : 'divider',
+                      transition: 'all 0.2s',
+                      '&:hover': {
+                        borderColor: 'primary.light',
+                        bgcolor: 'action.hover',
+                      },
+                    }}
+                  >
+                    <FormControlLabel
+                      value={idx}
+                      control={<Radio />}
+                      label={option}
+                      sx={{ width: '100%', m: 0, py: 0.5 }}
+                    />
+                  </Paper>
+                ))}
+              </RadioGroup>
             </FormControl>
 
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 4 }}>
@@ -259,13 +256,6 @@ export default function AssessmentPage() {
         <Box sx={{ mt: 3, textAlign: 'center' }}>
           <Typography variant="body2" color="text.secondary">
             {Object.keys(answers).length} of {SAMPLE_QUESTIONS.length} questions answered
-          </Typography>
-        </Box>
-
-        <Box sx={{ mt: 2, p: 2, bgcolor: 'grey.100', borderRadius: 2 }}>
-          <Typography variant="caption" color="text.secondary">
-            📋 <strong>Anti-Cheat Active:</strong> Copy, paste, cut, and right-click are blocked. 
-            All actions are logged. Text input fields work normally.
           </Typography>
         </Box>
       </Container>
