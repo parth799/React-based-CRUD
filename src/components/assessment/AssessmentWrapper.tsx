@@ -131,19 +131,34 @@ export function AssessmentWrapper({
             </Typography>
           </Box>
 
-          <Button
-            variant="contained"
-            size="large"
-            onClick={handleStart}
-            sx={{
-              px: 5,
-              py: 1.5,
-              fontSize: '1.1rem',
-              fontWeight: 'bold',
-            }}
-          >
-            Start Assessment
-          </Button>
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+            <Button
+              variant="outlined"
+              size="large"
+              onClick={() => window.open('/audit-logs', '_blank')}
+              sx={{
+                px: 3,
+                py: 1.5,
+                fontSize: '1rem',
+                fontWeight: 'bold',
+              }}
+            >
+              Check Logs
+            </Button>
+            <Button
+              variant="contained"
+              size="large"
+              onClick={handleStart}
+              sx={{
+                px: 5,
+                py: 1.5,
+                fontSize: '1.1rem',
+                fontWeight: 'bold',
+              }}
+            >
+              Start Assessment
+            </Button>
+          </Box>
         </Paper>
       </Box>
     );
