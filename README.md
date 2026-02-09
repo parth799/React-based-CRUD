@@ -1,6 +1,6 @@
-# User Management CRUD Application
+# Anti-Cheat Assessment System
 
-A modern, extensible user management application built with Next.js, Material-UI, Formik, and TypeScript.
+A secure, high-stakes assessment platform with browser restrictions, event logging, and complete audit trail. Built with Next.js, Material-UI, and TypeScript.
 
 ## Live Demo
 
@@ -8,21 +8,34 @@ A modern, extensible user management application built with Next.js, Material-UI
 
 ## Features
 
-- Create, Read, Update, Delete (CRUD) operations for users
-- Configuration-driven form architecture for easy extensibility
-- Form validation using Formik and Yup
-- Modern UI with Material-UI components
-- LocalStorage persistence (no backend required)
-- TypeScript for type safety
-- Responsive design
+### 🔒 Anti-Cheat Protection
+- Block Ctrl/Cmd + C (Copy)
+- Block Ctrl/Cmd + V (Paste)
+- Block Ctrl/Cmd + X (Cut)
+- Block right-click context menu
+- Disable text selection on protected content
+- Warning toasts on restricted actions
+- Typing in input fields still works normally
+
+### 📋 Unified Event Logging
+- Complete audit trail of candidate behavior
+- Events: copy/paste/cut attempts, right-clicks, tab switches, fullscreen changes
+- Local persistence using IndexedDB (survives refresh)
+- Automatic batch sync to backend every 30 seconds
+- Immutable logs post-submission
+
+### ⏱️ Assessment Features
+- Fullscreen enforcement
+- Countdown timer with heartbeat logging
+- Auto-submit on timeout
+- Question navigation with progress tracking
 
 ## Tech Stack
 
 - **Framework**: Next.js 14 (App Router)
 - **UI Library**: Material-UI (MUI)
-- **Form Handling**: Formik + Yup
 - **Language**: TypeScript
-- **Storage**: LocalStorage
+- **Storage**: IndexedDB (client), In-memory (server API)
 
 ## Getting Started
 
@@ -51,99 +64,79 @@ npm run dev
 
 4. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### Build for Production
+## Usage
 
-```bash
-npm run build
-npm start
-```
+### Taking an Assessment
+1. Visit the home page
+2. Click **"Start Assessment"** to begin
+3. Answer questions (MCQ and text-based)
+4. Submit when done
 
-## Adding New Fields
-
-The application uses a configuration-driven approach for form fields. To add a new field (e.g., "Date of Birth"):
-
-### Step 1: Update Form Configuration
-
-Edit `src/config/formConfig.ts`:
-
-```typescript
-export const formFields: FormField[] = [
-  {
-    name: 'dateOfBirth',
-    label: 'Date of Birth',
-    type: 'date',
-    required: false,
-    validation: 'date',
-    placeholder: 'Select date of birth'
-  }
-];
-```
-
-### Step 2: Update User Type
-
-Edit `src/types/user.ts`:
-
-```typescript
-export interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  phone: string;
-  email: string;
-  dateOfBirth?: string;
-  createdAt: string;
-  updatedAt: string;
-  [key: string]: string | undefined;
-}
-```
-
-That's it! The form, table, and API will automatically handle the new field.
+### Viewing Event Logs
+1. Click **"Check Logs"** button (opens in new tab)
+2. Or visit `/audit-logs` directly
+3. View all captured events with timestamps
 
 ## Project Structure
 
 ```
 src/
 ├── app/
-│   ├── api/users/          # API routes for CRUD
+│   ├── api/audit/logs/     # Audit event sync API
+│   ├── audit-logs/         # Event log viewer page
 │   ├── layout.tsx          # Root layout
-│   ├── page.tsx            # Main page
+│   ├── page.tsx            # Main assessment page
 │   └── providers.tsx       # Theme provider
 ├── components/
-│   ├── UserForm.tsx        # Dynamic form component
-│   ├── UserTable.tsx       # Users list table
-│   ├── UserDialog.tsx      # Create/Edit modal
-│   └── DeleteConfirmDialog.tsx
-├── config/
-│   └── formConfig.ts       # Field configuration
+│   └── assessment/
+│       └── AssessmentWrapper.tsx  # Anti-cheat wrapper
 ├── hooks/
-│   └── useUsers.ts         # CRUD operations hook
-├── theme/
-│   └── theme.ts            # MUI theme
+│   ├── useAntiCheat.ts     # Copy/paste/right-click blocking
+│   ├── useEventLogger.ts   # Unified logging & sync
+│   ├── useFullscreenGuard.ts # Fullscreen enforcement
+│   └── useAssessmentTimer.ts # Timer with heartbeat
 ├── types/
-│   └── user.ts             # TypeScript interfaces
+│   └── audit.types.ts      # Event type definitions
 └── utils/
-    └── storage.ts          # LocalStorage utilities
+    ├── auditStorage.ts     # IndexedDB persistence
+    └── browserDetect.ts    # Browser/OS detection
 ```
+
+## Event Schema
+
+Each audit event contains:
+
+| Field | Description |
+|-------|-------------|
+| `id` | Unique event ID |
+| `type` | Event type (COPY_ATTEMPT, TAB_BLUR, etc.) |
+| `timestamp` | Unix timestamp |
+| `attemptId` | Assessment attempt ID |
+| `userId` | Candidate user ID |
+| `questionId` | Current question (if applicable) |
+| `metadata` | Browser, OS, focus state, fullscreen status |
+
+## Events Captured
+
+| Event | Trigger |
+|-------|---------|
+| `COPY_ATTEMPT` | Ctrl+C pressed |
+| `PASTE_ATTEMPT` | Ctrl+V pressed |
+| `CUT_ATTEMPT` | Ctrl+X pressed |
+| `RIGHT_CLICK_ATTEMPT` | Context menu opened |
+| `TAB_BLUR` / `TAB_FOCUS` | Tab visibility change |
+| `WINDOW_BLUR` / `WINDOW_FOCUS` | Window focus change |
+| `FULLSCREEN_ENTER` / `FULLSCREEN_EXIT` | Fullscreen toggle |
+| `HEARTBEAT` | Every 60 seconds |
+| `TEST_START` / `TEST_SUBMIT` | Assessment lifecycle |
+| `TIME_EXPIRED` | Timer reaches zero |
 
 ## API Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | /api/users | Get all users |
-| POST | /api/users | Create new user |
-| GET | /api/users/[id] | Get user by ID |
-| PUT | /api/users/[id] | Update user |
-| DELETE | /api/users/[id] | Delete user |
-
-## Design Decisions
-
-1. **Configuration-Driven Forms**: Form fields are defined in a central configuration file, enabling easy addition of new fields without modifying multiple components.
-
-2. **LocalStorage for Persistence**: Chosen for easy deployment on Vercel without requiring a separate database service.
-
-3. **Dynamic Validation Schema**: Yup validation schemas are generated from the form configuration, ensuring consistency between field definitions and validation rules.
-
-4. **Custom Hook Pattern**: CRUD operations are encapsulated in a custom hook (`useUsers`) with built-in loading and error states.
+| POST | /api/audit/logs | Sync audit events |
+| GET | /api/audit/logs | Get all synced events |
 
 ## Deployment
 
@@ -154,7 +147,7 @@ src/
 3. Import your repository
 4. Deploy
 
-The application will be automatically deployed and available at your Vercel URL.
+The application will be automatically deployed.
 
 ## License
 
